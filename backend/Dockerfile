@@ -14,6 +14,6 @@ RUN npm install
 COPY . .
 
 # Your app binds to port 5000 so you'll use the EXPOSE instruction to have it mapped by the docker daemon
-EXPOSE 5000
+EXPOSE 3000
 
 CMD [ "node", "server.js" ]

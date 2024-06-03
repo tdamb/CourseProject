@@ -14,11 +14,21 @@ const URLShorten = () => {
     alert(`Short URL: ${data.shortUrl}`); // Display the short URL to the user
   };
 
+  const handleTestApi = () => {
+    fetch('/api/test')
+      .then((response) => response.json())
+      .then((data) => alert(`API Test Response: ${data.message}`))
+      .catch((error) => alert(`API Test Error: ${error.message}`));
+  };
+
   return (
     <div>
       <TextField label="Enter URL" variant="outlined" value={url} onChange={(e) => setUrl(e.target.value)} fullWidth />
       <Button onClick={handleSubmit} variant="contained" color="primary">
         Shorten URL
+      </Button>
+      <Button onClick={handleTestApi} variant="contained" color="secondary" style={{ marginTop: '10px' }}>
+        Test API
       </Button>
     </div>
   );
