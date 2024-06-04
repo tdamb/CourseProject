@@ -6,7 +6,6 @@ const {
   DynamoDBDocumentClient,
   GetCommand,
   PutCommand,
-  DeleteCommand,
   ScanCommand,
 } = require("@aws-sdk/lib-dynamodb");
 
@@ -14,125 +13,61 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// Create DynamoDB client
-const client = new DynamoDBClient({
+// Initialize DynamoDB Client
+const ddbClient = new DynamoDBClient({
   region: process.env.AWS_DEFAULT_REGION,
   credentials: {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
   },
 });
-const docClient = DynamoDBDocumentClient.from(client);
+const docClient = DynamoDBDocumentClient.from(ddbClient);
 
-// Function to test DynamoDB Scan
-const testScanDynamoDB = async () => {
-  const params = { TableName: "Urls" };
-  const command = new ScanCommand(params);
-
-  try {
-    const { Items } = await docClient.send(command);
-    console.log("Scan successfully executed, data retrieved:", Items);
-  } catch (err) {
-    console.error("Error during DynamoDB scan:", err);
-  }
-};
-
-// Define your routes
-app.get("/api/:shortUrl", async (req, res) => {
-  console.log("GET /api/:shortUrl called with:", req.params.shortUrl);
-  const params = {
-    TableName: "Urls",
-    Key: {
-      shortUrl: req.params.shortUrl,
-    },
-  };
-  const command = new GetCommand(params);
-
-  try {
-    const { Item } = await docClient.send(command);
-    if (!Item) {
-      res.status(404).json({ error: "Not found" });
-    } else {
-      res.json(Item);
-    }
-  } catch (error) {
-    console.error("Error retrieving the URL:", error);
-    res.status(500).json({ error: "Server error" });
-  }
-});
-
+// API to store URL information
 app.post("/api/shorten", async (req, res) => {
-  console.log("POST /api/shorten called with:", req.body);
   const { originalUrl } = req.body;
   const nanoid = (await import("nanoid")).nanoid;
   const shortId = nanoid(10);
   const shortUrl = `http://tomoprojektukas.com/shorturl/${shortId}`;
-
   const params = {
     TableName: "Urls",
     Item: {
-      shortUrl: shortUrl,
-      originalUrl: originalUrl,
+      originalUrl,
+      shortUrl,
       clicks: 0,
     },
   };
-  const command = new PutCommand(params);
 
   try {
-    await docClient.send(command);
+    await docClient.send(new PutCommand(params));
     res.json({ originalUrl, shortUrl });
   } catch (error) {
-    console.error("DynamoDB error:", error);
-    res.status(500).send("Server error");
+    console.error("Error saving URL:", error);
+    res.status(500).json({ error: "Error saving URL" });
   }
 });
 
-app.delete("/api/urls/:shortUrl", async (req, res) => {
-  console.log("DELETE /api/urls/:shortUrl called with:", req.params.shortUrl);
+// API to retrieve all URLs
+app.get("/api/urls", async (req, res) => {
   const params = {
     TableName: "Urls",
-    Key: {
-      shortUrl: req.params.shortUrl,
-    },
   };
-  const command = new DeleteCommand(params);
 
   try {
-    await docClient.send(command);
-    res.send("Deleted successfully");
+    const { Items } = await docClient.send(new ScanCommand(params));
+    res.json(Items);
   } catch (error) {
-    console.error("Failed to delete URL:", error);
-    res.status(500).send("Server error");
+    console.error("Error retrieving URLs:", error);
+    res.status(500).json({ error: "Error retrieving URLs" });
   }
 });
 
-app.get("/api/urls", async (req, res) => {
-  console.log("Received request for URLs");
-  const params = { TableName: "Urls" };
-  const command = new ScanCommand(params);
-
-  try {
-    const { Items } = await docClient.send(command);
-    console.log("Data retrieved:", Items);
-    if (Items.length > 0) {
-      res.json(Items);
-    } else {
-      res.status(200).json({ message: "No URLs found" });
-    }
-  } catch (err) {
-    console.error("Error scanning DynamoDB:", err);
-    res.status(500).json({ error: "Server error", details: err.message });
-  }
-});
-
-// Test API Route
-
+// Middleware for error handling and existing test route
 app.get("/api/test", (req, res) => {
   console.log("GET /api/test called");
   res.json({ message: "Test API is working!" });
 });
 
-// Middleware for error handling
 app.use((req, res, next) => {
   console.log("404 Not Found:", req.originalUrl);
   res.status(404).json({ error: "Not found" });
@@ -146,5 +81,4 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
-  testScanDynamoDB(); // Optionally test the scan function
 });

@@ -14,6 +14,7 @@ RUN npm install &> npm-install.log
 COPY . .
 
 # Build the React app
+RUN npm i
 RUN npm run build
 
 # Start from Nginx image to serve the built application
