@@ -1,0 +1,53 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+  ECS_CLUSTER: your-cluster-name  # ECS cluster name
+  ECS_SERVICE_NAME_FRONTEND: your-frontend-service-name  # ECS frontend service name
+  ECS_SERVICE_NAME_BACKEND: your-backend-service-name  # ECS backend service name
+  TASK_DEFINITION_PATH_FRONTEND: task-definition-frontend.json  # Path to frontend task definition
+  TASK_DEFINITION_PATH_BACKEND: task-definition-backend.json  # Path to backend task definition
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+    # Existing steps to checkout code, configure AWS credentials, login to ECR, build and push images
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Update Task Definition for Frontend
+      run: |
+        sed -i "s;IMAGE_URI_FRONTEND;${{ env.ECR_REPOSITORY }}:frontend-${{ github.sha }};g" ${{ env.TASK_DEFINITION_PATH_FRONTEND }}
+        aws ecs register-task-definition --cli-input-json file://$TASK_DEFINITION_PATH_FRONTEND
+
+    - name: Update ECS Service for Frontend
+      run: |
+        aws ecs update-service --cluster ${{ env.ECS_CLUSTER }} --service ${{ env.ECS_SERVICE_NAME_FRONTEND }} --task-definition $(basename $TASK_DEFINITION_PATH_FRONTEND)
+
+    - name: Update Task Definition for Backend
+      run: |
+        sed -i "s;IMAGE_URI_BACKEND;${{ env.ECR_REPOSITORY }}:backend-${{ github.sha }};g" ${{ env.TASK_DEFINITION_PATH_BACKEND }}
+        aws ecs register-task-definition --cli-input-json file://$TASK_DEFINITION_PATH_BACKEND
+
+    - name: Update ECS Service for Backend
+      run: |
+        aws ecs update-service --cluster ${{ env.ECS_CLUSTER }} --service ${{ env.ECS_SERVICE_NAME_BACKEND }} --task-definition $(basename $TASK_DEFINITION_PATH_BACKEND)
