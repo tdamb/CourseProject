@@ -15,12 +15,9 @@ app.use(cors());
 
 // Initialize DynamoDB Client
 const ddbClient = new DynamoDBClient({
-  region: process.env.AWS_DEFAULT_REGION,
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  },
+  region: process.env.AWS_REGION, // Ensure this is set in your ECS task's environment variables
 });
+
 const docClient = DynamoDBDocumentClient.from(ddbClient);
 
 // API to store URL information
@@ -30,7 +27,7 @@ app.post("/api/shorten", async (req, res) => {
   const shortId = nanoid(10);
   const shortUrl = `http://tomoprojektukas.com/shorturl/${shortId}`;
   const params = {
-    TableName: "Urls",
+    TableName: process.env.TABLE_NAME,
     Item: {
       originalUrl,
       shortUrl,
