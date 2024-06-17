@@ -29,10 +29,14 @@ jobs:
       - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v1 # Check if a new version is available
 
+      - name: Print ECR Registry URL
+        run: 'echo "ECR Registry URL: ${{ steps.login-ecr.outputs.registry }}"'
+
       - name: Build and push Frontend Docker image
         run: |
-          docker build -t ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:frontend-${{ github.sha }} ./frontend/create-react-app
-          docker push ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:frontend-${{ github.sha }}
+          ECR_REGISTRY=$(echo ${{ steps.login-ecr.outputs.registry }} | sed 's|/$||') # Removes any trailing slash
+          docker build -t $ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:frontend-${{ github.sha }} ./frontend/create-react-app
+          docker push $ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:frontend-${{ github.sha }}
 
       - name: Build and push Backend Docker image
         run: |
