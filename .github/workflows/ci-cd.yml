@@ -37,24 +37,23 @@ jobs:
             exit 1
           else
             echo "ECR Registry URL: ${{ steps.login-ecr.outputs.registry }}"
-          fi
 
       - name: Build and push Frontend Docker image
         run: |
           ECR_REGISTRY=$(echo "${{ steps.login-ecr.outputs.registry }}" | sed 's|/$||')  # Remove any trailing slash
-          if [ -z "$ECR_REGISTRY" ]; then
-            echo "ECR Registry URL is empty"
-            exit 1
-          fi
-          docker build -t $ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:frontend-${{ github.sha }} ./frontend/create-react-app
-          docker push $ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:frontend-${{ github.sha }}
+          FRONTEND_IMAGE_TAG=${{ github.sha }}
+          FRONTEND_IMAGE=$ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:frontend-$FRONTEND_IMAGE_TAG
+          docker build -t $FRONTEND_IMAGE ./frontend/create-react-app
+          docker push $FRONTEND_IMAGE
+          docker tag $FRONTEND_IMAGE $ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:frontend-latest
+          docker push $ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:frontend-latest
 
       - name: Build and push Backend Docker image
         run: |
           ECR_REGISTRY=$(echo "${{ steps.login-ecr.outputs.registry }}" | sed 's|/$||')  # Remove any trailing slash
-          if [ -z "$ECR_REGISTRY" ]; then
-            echo "ECR Registry URL is empty"
-            exit 1
-          fi
-          docker build -t $ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:backend-${{ github.sha }} ./backend
-          docker push $ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:backend-${{ github.sha }}
+          BACKEND_IMAGE_TAG=${{ github.sha }}
+          BACKEND_IMAGE=$ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:backend-$BACKEND_IMAGE_TAG
+          docker build -t $BACKEND_IMAGE ./backend
+          docker push $BACKEND_IMAGE
+          docker tag $BACKEND_IMAGE $ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:backend-latest
+          docker push $ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:backend-latest
