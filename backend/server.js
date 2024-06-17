@@ -71,7 +71,7 @@ app.use((req, res, next) => {
 });
 
 app.use((err, req, res, next) => {
-  console.error("500 Server Error:", err.stack);
+  console.error("500 Server Error:", err.message);
   res.status(500).json({ error: "Server error" });
 });
 
