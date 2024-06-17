@@ -20,25 +20,41 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1 # Check if a new version is available
+        uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Login to Amazon ECR
-        uses: aws-actions/amazon-ecr-login@v1 # Check if a new version is available
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
 
       - name: Print ECR Registry URL
-        run: 'echo "ECR Registry URL: ${{ steps.login-ecr.outputs.registry }}"'
+        run: |
+          if [ -z "${{ steps.login-ecr.outputs.registry }}" ]; then
+            echo "Failed to retrieve ECR Registry URL"
+            exit 1
+          else
+            echo "ECR Registry URL: ${{ steps.login-ecr.outputs.registry }}"
+          fi
 
       - name: Build and push Frontend Docker image
         run: |
-          ECR_REGISTRY=$(echo ${{ steps.login-ecr.outputs.registry }} | sed 's|/$||') # Removes any trailing slash
+          ECR_REGISTRY=$(echo "${{ steps.login-ecr.outputs.registry }}" | sed 's|/$||')  # Remove any trailing slash
+          if [ -z "$ECR_REGISTRY" ]; then
+            echo "ECR Registry URL is empty"
+            exit 1
+          fi
           docker build -t $ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:frontend-${{ github.sha }} ./frontend/create-react-app
           docker push $ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:frontend-${{ github.sha }}
 
       - name: Build and push Backend Docker image
         run: |
-          docker build -t ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:backend-${{ github.sha }} ./backend
-          docker push ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:backend-${{ github.sha }}
+          ECR_REGISTRY=$(echo "${{ steps.login-ecr.outputs.registry }}" | sed 's|/$||')  # Remove any trailing slash
+          if [ -z "$ECR_REGISTRY" ]; then
+            echo "ECR Registry URL is empty"
+            exit 1
+          fi
+          docker build -t $ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:backend-${{ github.sha }} ./backend
+          docker push $ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:backend-${{ github.sha }}
