@@ -37,10 +37,7 @@ jobs:
             exit 1
           else
             echo "ECR Registry URL: ${{ steps.login-ecr.outputs.registry }}"
-
-      - name: Set up date
-        id: date
-        run: echo "CURRENT_DATE=$(date +'%Y%m%d')" >> $GITHUB_ENV
+          fi
 
       - name: Build and push Frontend Docker image
         run: |
