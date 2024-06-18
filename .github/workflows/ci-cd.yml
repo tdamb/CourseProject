@@ -37,12 +37,15 @@ jobs:
             exit 1
           else
             echo "ECR Registry URL: ${{ steps.login-ecr.outputs.registry }}"
-          fi  # This closes the if statement
+
+      - name: Set up date
+        id: date
+        run: echo "CURRENT_DATE=$(date +'%Y%m%d')" >> $GITHUB_ENV
 
       - name: Build and push Frontend Docker image
         run: |
           ECR_REGISTRY=$(echo "${{ steps.login-ecr.outputs.registry }}" | sed 's|/$||')  # Remove any trailing slash
-          FRONTEND_IMAGE_SHA=$ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:frontend-${{ github.sha }}
+          FRONTEND_IMAGE_SHA=$ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:frontend-${{ github.sha }}-${{ env.CURRENT_DATE }}
           FRONTEND_IMAGE_LATEST=$ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:frontend-latest
           docker build -t $FRONTEND_IMAGE_SHA ./frontend/create-react-app
           docker tag $FRONTEND_IMAGE_SHA $FRONTEND_IMAGE_LATEST
@@ -52,7 +55,7 @@ jobs:
       - name: Build and push Backend Docker image
         run: |
           ECR_REGISTRY=$(echo "${{ steps.login-ecr.outputs.registry }}" | sed 's|/$||')  # Remove any trailing slash
-          BACKEND_IMAGE_SHA=$ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:backend-${{ github.sha }}
+          BACKEND_IMAGE_SHA=$ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:backend-${{ github.sha }}-${{ env.CURRENT_DATE }}
           BACKEND_IMAGE_LATEST=$ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:backend-latest
           docker build -t $BACKEND_IMAGE_SHA ./backend
           docker tag $BACKEND_IMAGE_SHA $BACKEND_IMAGE_LATEST
