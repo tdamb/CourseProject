@@ -3,10 +3,10 @@ name: Build and Push Docker images to ECR
 on:
   push:
     branches:
-      - main # Trigger on pushes to main branch
+      - main # Trigger on pushes to the main branch
   pull_request:
     branches:
-      - main # Trigger on PRs to main branch
+      - main # Trigger on PRs to the main branch
 
 permissions:
   contents: read
@@ -37,6 +37,7 @@ jobs:
             exit 1
           else
             echo "ECR Registry URL: ${{ steps.login-ecr.outputs.registry }}"
+          fi  # This closes the if statement
 
       - name: Build and push Frontend Docker image
         run: |
