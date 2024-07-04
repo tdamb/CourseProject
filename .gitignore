@@ -133,4 +133,4 @@ dist
 
 
 #terraform
-*.tf
+*.py

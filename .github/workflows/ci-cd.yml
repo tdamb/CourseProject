@@ -37,13 +37,13 @@ jobs:
       - name: Build and push Frontend Docker image
         run: |
           ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
-          FRONTEND_IMAGE_TAG=$ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:${{ env.DATETIME }}
+          FRONTEND_IMAGE_TAG=$ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:frontend-${{ env.DATETIME }}
           docker build -t $FRONTEND_IMAGE_TAG ./frontend/create-react-app
           docker push $FRONTEND_IMAGE_TAG
 
       - name: Build and push Backend Docker image
         run: |
           ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
-          BACKEND_IMAGE_TAG=$ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:${{ env.DATETIME }}
+          BACKEND_IMAGE_TAG=$ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:backend-${{ env.DATETIME }}
           docker build -t $BACKEND_IMAGE_TAG ./backend
           docker push $BACKEND_IMAGE_TAG
