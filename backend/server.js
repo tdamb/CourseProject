@@ -15,7 +15,11 @@ app.use(cors());
 
 // Initialize DynamoDB Client
 const ddbClient = new DynamoDBClient({
-  region: process.env.AWS_REGION, // Ensure this is set in your ECS task's environment variables
+  region: process.env.AWS_DEFAULT_REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  },
 });
 
 const docClient = DynamoDBDocumentClient.from(ddbClient);
@@ -23,7 +27,7 @@ const docClient = DynamoDBDocumentClient.from(ddbClient);
 // API to store URL information
 app.post("/api/shorten", async (req, res) => {
   const { originalUrl } = req.body;
-  const nanoid = (await import("nanoid")).nanoid;
+  const { nanoid } = await import("nanoid");
   const shortId = nanoid(10);
   const shortUrl = `http://tomoprojektukas.com/shorturl/${shortId}`;
   const params = {
@@ -47,7 +51,7 @@ app.post("/api/shorten", async (req, res) => {
 // API to retrieve all URLs
 app.get("/api/urls", async (req, res) => {
   const params = {
-    TableName: "Urls",
+    TableName: process.env.TABLE_NAME, // Ensure the table name is retrieved from .env
   };
 
   try {
