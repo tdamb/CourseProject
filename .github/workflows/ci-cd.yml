@@ -32,7 +32,6 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v1
 
       - name: Set the Date-Time Tag
-        id: datetime
         run: echo "DATETIME=$(date '+prod-%Y-%m-%d-%H-%M')" >> $GITHUB_ENV
 
       - name: Build and push Frontend Docker image
@@ -44,7 +43,7 @@ jobs:
 
       - name: Build and push Backend Docker image
         run: |
-          ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}"
+          ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
           BACKEND_IMAGE_TAG=$ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:${{ env.DATETIME }}
           docker build -t $BACKEND_IMAGE_TAG ./backend
           docker push $BACKEND_IMAGE_TAG
