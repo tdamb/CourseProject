@@ -28,6 +28,7 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Login to Amazon ECR
+        id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
       - name: Set the Date-Time Tag
@@ -36,14 +37,14 @@ jobs:
 
       - name: Build and push Frontend Docker image
         run: |
-          ECR_REGISTRY=$(echo "${{ steps.login-ecr.outputs.registry }}" | sed 's|/$||')
+          ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
           FRONTEND_IMAGE_TAG=$ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:${{ env.DATETIME }}
           docker build -t $FRONTEND_IMAGE_TAG ./frontend/create-react-app
           docker push $FRONTEND_IMAGE_TAG
 
       - name: Build and push Backend Docker image
         run: |
-          ECR_REGISTRY=$(echo "${{ steps.login-ecr.outputs.registry }}" | sed 's|/$||')
+          ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}"
           BACKEND_IMAGE_TAG=$ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:${{ env.DATETIME }}
           docker build -t $BACKEND_IMAGE_TAG ./backend
           docker push $BACKEND_IMAGE_TAG
