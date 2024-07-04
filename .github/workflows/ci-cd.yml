@@ -1,4 +1,4 @@
-name: Build and Push Docker images to ECR
+name: Build, Push and Deploy Docker images to ECR and ECS
 
 on:
   push:
@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   build-and-push:
@@ -27,34 +28,22 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Login to Amazon ECR
-        id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Print ECR Registry URL
-        run: |
-          if [ -z "${{ steps.login-ecr.outputs.registry }}" ]; then
-            echo "Failed to retrieve ECR Registry URL"
-            exit 1
-          else
-            echo "ECR Registry URL: ${{ steps.login-ecr.outputs.registry }}"
-          fi
+      - name: Set the Date-Time Tag
+        id: datetime
+        run: echo "DATETIME=$(date '+prod-%Y-%m-%d-%H-%M')" >> $GITHUB_ENV
 
       - name: Build and push Frontend Docker image
         run: |
-          ECR_REGISTRY=$(echo "${{ steps.login-ecr.outputs.registry }}" | sed 's|/$||')  # Remove any trailing slash
-          FRONTEND_IMAGE_SHA=$ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:frontend-${{ github.sha }}-${{ env.CURRENT_DATE }}
-          FRONTEND_IMAGE_LATEST=$ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:frontend-latest
-          docker build -t $FRONTEND_IMAGE_SHA ./frontend/create-react-app
-          docker tag $FRONTEND_IMAGE_SHA $FRONTEND_IMAGE_LATEST
-          docker push $FRONTEND_IMAGE_SHA
-          docker push $FRONTEND_IMAGE_LATEST
+          ECR_REGISTRY=$(echo "${{ steps.login-ecr.outputs.registry }}" | sed 's|/$||')
+          FRONTEND_IMAGE_TAG=$ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:${{ env.DATETIME }}
+          docker build -t $FRONTEND_IMAGE_TAG ./frontend/create-react-app
+          docker push $FRONTEND_IMAGE_TAG
 
       - name: Build and push Backend Docker image
         run: |
-          ECR_REGISTRY=$(echo "${{ steps.login-ecr.outputs.registry }}" | sed 's|/$||')  # Remove any trailing slash
-          BACKEND_IMAGE_SHA=$ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:backend-${{ github.sha }}-${{ env.CURRENT_DATE }}
-          BACKEND_IMAGE_LATEST=$ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:backend-latest
-          docker build -t $BACKEND_IMAGE_SHA ./backend
-          docker tag $BACKEND_IMAGE_SHA $BACKEND_IMAGE_LATEST
-          docker push $BACKEND_IMAGE_SHA
-          docker push $BACKEND_IMAGE_LATEST
+          ECR_REGISTRY=$(echo "${{ steps.login-ecr.outputs.registry }}" | sed 's|/$||')
+          BACKEND_IMAGE_TAG=$ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:${{ env.DATETIME }}
+          docker build -t $BACKEND_IMAGE_TAG ./backend
+          docker push $BACKEND_IMAGE_TAG
