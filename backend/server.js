@@ -14,12 +14,17 @@ app.use(express.json());
 app.use(cors());
 
 // Initialize DynamoDB Client
+// const ddbClient = new DynamoDBClient({
+//   region: process.env.AWS_DEFAULT_REGION,
+//   credentials: {
+//     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+//     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+//   },
+// });
+
+// Initialize DynamoDB Client
 const ddbClient = new DynamoDBClient({
   region: process.env.AWS_DEFAULT_REGION,
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  },
 });
 
 const docClient = DynamoDBDocumentClient.from(ddbClient);
@@ -29,7 +34,7 @@ app.post("/api/shorten", async (req, res) => {
   const { originalUrl } = req.body;
   const { nanoid } = await import("nanoid");
   const shortId = nanoid(10);
-  const shortUrl = `http://tomoprojektukas.com/shorturl/${shortId}`;
+  const shortUrl = `http://CodeAcademyProjektukas.com/shorturl/${shortId}`;
   const params = {
     TableName: process.env.TABLE_NAME,
     Item: {
