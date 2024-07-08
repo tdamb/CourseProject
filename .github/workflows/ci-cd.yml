@@ -47,3 +47,17 @@ jobs:
           BACKEND_IMAGE_TAG=$ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:backend-${{ env.DATETIME }}
           docker build -t $BACKEND_IMAGE_TAG ./backend
           docker push $BACKEND_IMAGE_TAG
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+
+      - name: Initialize Terraform
+        run: terraform init
+        working-directory: ./infrastructure # Adjust this if your Terraform files are in a different directory
+
+      - name: Apply Terraform Configuration
+        run: terraform apply -auto-approve
+        working-directory: ./infrastructure # Ensure this points to the directory containing your Terraform files
+        env:
+          TF_VAR_frontend_image_uri: ${{ env.FRONTEND_IMAGE_TAG }}
+          TF_VAR_backend_image_uri: ${{ env.BACKEND_IMAGE_TAG }}
