@@ -37,21 +37,18 @@ jobs:
       - name: Build and push Frontend Docker image
         run: |
           ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
-          FRONTEND_IMAGE_TAG=$ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:frontend-${{ env.DATETIME }}
+          FRONTEND_IMAGE_TAG="$ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:frontend-${{ env.DATETIME }}"
           docker build -t $FRONTEND_IMAGE_TAG ./frontend/create-react-app
           docker push $FRONTEND_IMAGE_TAG
+          echo "FRONTEND_IMAGE_URI=$FRONTEND_IMAGE_TAG" >> $GITHUB_ENV
 
       - name: Build and push Backend Docker image
         run: |
           ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
-          BACKEND_IMAGE_TAG=$ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:backend-${{ env.DATETIME }}
+          BACKEND_IMAGE_TAG="$ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:backend-${{ env.DATETIME }}"
           docker build -t $BACKEND_IMAGE_TAG ./backend
           docker push $BACKEND_IMAGE_TAG
-
-      - name: Set Terraform Variables
-        run: |
-          echo "TF_VAR_frontend_image_uri=${{ env.FRONTEND_IMAGE_TAG }}" >> $GITHUB_ENV
-          echo "TF_VAR_backend_image_uri=${{ env.BACKEND_IMAGE_TAG }}" >> $GITHUB_ENV
+          echo "BACKEND_IMAGE_URI=$BACKEND_IMAGE_TAG" >> $GITHUB_ENV
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
@@ -64,5 +61,5 @@ jobs:
         run: terraform apply -auto-approve
         working-directory: ./infrastructure
         env:
-          TF_VAR_frontend_image_uri: ${{ env.TF_VAR_frontend_image_uri }}
-          TF_VAR_backend_image_uri: ${{ env.TF_VAR_backend_image_uri }}
+          TF_VAR_frontend_image_uri: ${{ env.FRONTEND_IMAGE_URI }}
+          TF_VAR_backend_image_uri: ${{ env.BACKEND_IMAGE_URI }}
