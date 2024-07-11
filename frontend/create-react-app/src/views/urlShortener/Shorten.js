@@ -17,7 +17,7 @@ const URLShorten = () => {
   const handleTestApi = () => {
     fetch('/api/test')
       .then((response) => response.json())
-      .then((data) => alert(`API Test Response: ${data.message}`))
+      .then((data) => alert(`API Test Response, testing: ${data.message}`))
       .catch((error) => alert(`API Test Error: ${error.message}`));
   };
 
