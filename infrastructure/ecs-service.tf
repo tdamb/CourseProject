@@ -13,6 +13,18 @@ resource "aws_ecs_service" "example_service" {
 
   depends_on = [aws_autoscaling_group.ecs_asg]
 
+  deployment_controller {
+    type = "ECS"
+  }
+
+  deployment_maximum_percent         = 200
+  deployment_minimum_healthy_percent = 50
+
+  deployment_circuit_breaker {
+    enable   = true
+    rollback = true
+  }
+
   service_connect_configuration {
     enabled   = true
     namespace = "arn:aws:servicediscovery:eu-central-1:637423330216:namespace/ns-ehs7kynz2bsgnwwb"
