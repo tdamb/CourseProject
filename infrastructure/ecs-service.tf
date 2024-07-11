@@ -1,3 +1,8 @@
+resource "time_sleep" "wait_90_seconds" {
+  create_duration = "90s"
+  depends_on      = [aws_autoscaling_group.ecs_asg]
+}
+
 resource "aws_ecs_service" "example_service" {
   name            = "CA_Project_test_tf"
   cluster         = aws_ecs_cluster.ecs_cluster.arn
