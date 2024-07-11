@@ -22,7 +22,8 @@ const utilities = {
       type: 'item',
       url: '/utils/util-typography',
       icon: icons.IconTypography,
-      breadcrumbs: false
+      breadcrumbs: false,
+      visible: false
     },
     {
       id: 'util-color',
