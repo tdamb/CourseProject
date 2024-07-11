@@ -26,10 +26,10 @@ resource "aws_ecs_task_definition" "CA_Project" {
       essential     = true
       portMappings = [
         {
+          name          = "frontend"
           containerPort = 80
           hostPort      = 80
           protocol      = "tcp"
-          portName      = "frontend"
         }
       ]
       logConfiguration = {
@@ -50,10 +50,10 @@ resource "aws_ecs_task_definition" "CA_Project" {
       essential     = false
       portMappings = [
         {
+          name          = "backend"
           containerPort = 3000
           hostPort      = 3000
           protocol      = "tcp"
-          portName      = "backend"
         }
       ]
       environment = [
