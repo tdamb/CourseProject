@@ -34,20 +34,29 @@ jobs:
       - name: Set the Date-Time Tag
         run: echo "DATETIME=$(date '+prod-%Y-%m-%d-%H-%M')" >> $GITHUB_ENV
 
-      - name: Build and push Frontend Docker image
+      - name: Determine Change Path
+        id: check_paths
+        run: |
+          CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }})
+          echo "Changed files: $CHANGED_FILES"
+          if [[ "$CHANGED_FILES" == *"frontend/"* ]] || [[ "$CHANGED_FILES" == *"backend/"* ]]; then
+            echo "CODE_CHANGED=true" >> $GITHUB_ENV
+          else
+            echo "CODE_CHANGED=false" >> $GITHUB_ENV
+          fi
+
+      - name: Build and push Docker images
+        if: env.CODE_CHANGED == 'true'
         run: |
           ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
           FRONTEND_IMAGE_TAG="$ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:frontend-${{ env.DATETIME }}"
+          BACKEND_IMAGE_TAG="$ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:backend-${{ env.DATETIME }}"
+          echo "Building and pushing Docker images..."
           docker build -t $FRONTEND_IMAGE_TAG ./frontend/create-react-app
           docker push $FRONTEND_IMAGE_TAG
-          echo "FRONTEND_IMAGE_URI=$FRONTEND_IMAGE_TAG" >> $GITHUB_ENV
-
-      - name: Build and push Backend Docker image
-        run: |
-          ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
-          BACKEND_IMAGE_TAG="$ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:backend-${{ env.DATETIME }}"
           docker build -t $BACKEND_IMAGE_TAG ./backend
           docker push $BACKEND_IMAGE_TAG
+          echo "FRONTEND_IMAGE_URI=$FRONTEND_IMAGE_TAG" >> $GITHUB_ENV
           echo "BACKEND_IMAGE_URI=$BACKEND_IMAGE_TAG" >> $GITHUB_ENV
 
       - name: Setup Terraform
