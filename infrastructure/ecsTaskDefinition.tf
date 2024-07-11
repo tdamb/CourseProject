@@ -19,11 +19,11 @@ resource "aws_ecs_task_definition" "CA_Project" {
 
   container_definitions = jsonencode([
     {
-      name          = "frontend"
-      image         = var.frontend_image_uri
-      cpu           = 307
-      memory        = 410
-      essential     = true
+      name      = "frontend"
+      image     = var.frontend_image_uri
+      cpu       = 307
+      memory    = 410
+      essential = true
       portMappings = [
         {
           name          = "frontend"
@@ -43,11 +43,11 @@ resource "aws_ecs_task_definition" "CA_Project" {
       }
     },
     {
-      name          = "backend"
-      image         = var.backend_image_uri
-      cpu           = 205
-      memory        = 410
-      essential     = false
+      name      = "backend"
+      image     = var.backend_image_uri
+      cpu       = 205
+      memory    = 410
+      essential = false
       portMappings = [
         {
           name          = "backend"
