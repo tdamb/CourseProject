@@ -1,5 +1,5 @@
 import urlShortenerMenu from './urlshortener';
-import dashboard from './dashboard';
+//import dashboard from './dashboard';
 // import pages from './pages';
 // import utilities from './utilities';
 // import other from './other';
@@ -7,7 +7,7 @@ import dashboard from './dashboard';
 // ==============================|| MENU ITEMS ||============================== //
 
 const menuItems = {
-  items: [urlShortenerMenu, dashboard]
+  items: [urlShortenerMenu]
 };
 
 export default menuItems;
@@ -16,4 +16,4 @@ export default menuItems;
 // one more
 // one one more
 // MENU ITEMS to add if required
-// , pages, utilities, other
+// , dashboard,pages, utilities, other
