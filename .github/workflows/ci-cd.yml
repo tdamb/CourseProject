@@ -45,6 +45,7 @@ jobs:
             echo "CODE_CHANGED=true" >> $GITHUB_ENV
           else
             echo "CODE_CHANGED=false" >> $GITHUB_ENV
+          fi
 
       - name: Build and push Frontend Docker image
         if: env.CODE_CHANGED == 'true'
@@ -73,10 +74,10 @@ jobs:
 
       - name: Pre-Deployment Capacity Check
         run: |
-          CURRENT_CAPACITY=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names "your-asg-name" --query 'AutoScalingGroups[0].DesiredCapacity' --output text)
-          if [[ "$CURRENT_CAPACITY" -lt 3 ]]; then
+          CURRENT_CAPACITY=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names "terraform-20240709181605878000000001" --query 'AutoScalingGroups[0].DesiredCapacity' --output text)
+          if [[ "$CURRENT_CAPACITY" -lt 2 ]]; then
             echo "Scaling up the ASG"
-            aws autoscaling set-desired-capacity --auto-scaling-group-name "your-asg-name" --desired-capacity $(($CURRENT_CAPACITY + 1))
+            aws autoscaling set-desired-capacity --auto-scaling-group-name "terraform-20240709181605878000000001" --desired-capacity $(($CURRENT_CAPACITY + 1))
           fi
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -93,10 +94,10 @@ jobs:
       - name: Post-Deployment Scaling Down
         run: |
           # Assuming desired capacity increased during pre-deployment
-          CURRENT_CAPACITY=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names "your-asg-name" --query 'AutoScalingGroups[0].DesiredCapacity' --output text)
+          CURRENT_CAPACITY=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names "terraform-20240709181605878000000001" --query 'AutoScalingGroups[0].DesiredCapacity' --output text)
           if [[ "$CURRENT_CAPACITY" -gt 1 ]]; then
             echo "Scaling down the ASG"
-            aws autoscaling set-desired-capacity --auto-scaling-group-name "your-asg-name" --desired-capacity $(($CURRENT_CAPACITY - 1))
+            aws autoscaling set-desired-capacity --auto-scaling-group-name "terraform-20240709181605878000000001" --desired-capacity $(($CURRENT_CAPACITY - 1))
           fi
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
