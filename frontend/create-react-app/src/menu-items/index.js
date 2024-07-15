@@ -7,7 +7,10 @@ import other from './other';
 // ==============================|| MENU ITEMS ||============================== //
 
 const menuItems = {
-  items: [urlShortenerMenu, dashboard, pages, utilities, other]
+  items: [urlShortenerMenu, dashboard]
 };
 
 export default menuItems;
+
+// MENU ITEMS to add if required
+// , pages, utilities, other

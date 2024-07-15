@@ -45,7 +45,6 @@ jobs:
             echo "CODE_CHANGED=true" >> $GITHUB_ENV
           else
             echo "CODE_CHANGED=false" >> $GITHUB_ENV
-          fi
 
       - name: Build and push Frontend Docker image
         if: env.CODE_CHANGED == 'true'
@@ -72,9 +71,34 @@ jobs:
         run: terraform init
         working-directory: ./infrastructure
 
+      - name: Pre-Deployment Capacity Check
+        run: |
+          CURRENT_CAPACITY=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names "your-asg-name" --query 'AutoScalingGroups[0].DesiredCapacity' --output text)
+          if [[ "$CURRENT_CAPACITY" -lt 3 ]]; then
+            echo "Scaling up the ASG"
+            aws autoscaling set-desired-capacity --auto-scaling-group-name "your-asg-name" --desired-capacity $(($CURRENT_CAPACITY + 1))
+          fi
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+
       - name: Apply Terraform Configuration
         run: terraform apply -auto-approve
         working-directory: ./infrastructure
         env:
           TF_VAR_frontend_image_uri: ${{ env.FRONTEND_IMAGE_URI }}
           TF_VAR_backend_image_uri: ${{ env.BACKEND_IMAGE_URI }}
+
+      - name: Post-Deployment Scaling Down
+        run: |
+          # Assuming desired capacity increased during pre-deployment
+          CURRENT_CAPACITY=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names "your-asg-name" --query 'AutoScalingGroups[0].DesiredCapacity' --output text)
+          if [[ "$CURRENT_CAPACITY" -gt 1 ]]; then
+            echo "Scaling down the ASG"
+            aws autoscaling set-desired-capacity --auto-scaling-group-name "your-asg-name" --desired-capacity $(($CURRENT_CAPACITY - 1))
+          fi
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
