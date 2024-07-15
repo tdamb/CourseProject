@@ -2,7 +2,7 @@ resource "aws_ecs_service" "example_service" {
   name            = "CA_Project_test_tf"
   cluster         = aws_ecs_cluster.ecs_cluster.arn
   task_definition = "${aws_ecs_task_definition.CA_Project.family}:${max(aws_ecs_task_definition.CA_Project.revision)}"
-  desired_count   = 0
+  desired_count   = 1
   launch_type     = "EC2"
 
   #   network_configuration {
