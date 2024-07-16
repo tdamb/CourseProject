@@ -57,9 +57,9 @@ jobs:
           echo "TF_VAR_frontend_image_uri=${FRONTEND_IMAGE_URI:-none}" >> $GITHUB_ENV
           echo "TF_VAR_backend_image_uri=${BACKEND_IMAGE_URI:-none}" >> $GITHUB_ENV
 
-          - name: Login to Amazon ECR
-          id: login-ecr
-          uses: aws-actions/amazon-ecr-login@v1
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
 
       - name: Build and push Frontend Docker image
         if: env.CODE_CHANGED == 'true'
