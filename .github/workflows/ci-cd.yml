@@ -51,8 +51,8 @@ jobs:
         run: |
           FRONTEND_IMAGE_URI=$(aws ecr describe-images --repository-name ${{ secrets.ECR_REPOSITORY }} --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageTags[?starts_with(@, `frontend-`)] | [0]' --output text)
           BACKEND_IMAGE_URI=$(aws ecr describe-images --repository-name ${{ secrets.ECR_REPOSITORY }} --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageTags[?starts_with(@, `backend-`)] | [0]' --output text)
-          echo "FRONTEND_IMAGE_URI=${FRONTEND_IMAGE_URI:-none}" >> $GITHUB_ENV
-          echo "BACKEND_IMAGE_URI=${BACKEND_IMAGE_URI:-none}" >> $GITHUB_ENV
+          echo "TF_VAR_frontend_image_uri=${FRONTEND_IMAGE_URI:-none}" >> $GITHUB_ENV
+          echo "TF_VAR_backend_image_uri=${BACKEND_IMAGE_URI:-none}" >> $GITHUB_ENV
 
       - name: Build and push Frontend Docker image
         if: env.CODE_CHANGED == 'true'
@@ -84,7 +84,9 @@ jobs:
 
       - name: Set Deployment Tag in Terraform
         run: |
-          terraform apply -var="deployment_tag=${{ env.DEPLOYMENT_TAG }}" -auto-approve
+          terraform apply -auto-approve -var="deployment_tag=${{ env.DEPLOYMENT_TAG }}" \
+            -var="frontend_image_uri=${{ env.TF_VAR_frontend_image_uri }}" \
+            -var="backend_image_uri=${{ env.TF_VAR_backend_image_uri }}"
         working-directory: ./infrastructure
 
       - name: Pre-Deployment Capacity Check
