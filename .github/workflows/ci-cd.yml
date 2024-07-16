@@ -45,6 +45,14 @@ jobs:
             echo "CODE_CHANGED=false" >> $GITHUB_ENV
           fi
 
+      - name: Fetch Latest Image Tags
+        if: env.CODE_CHANGED == 'false'
+        run: |
+          FRONTEND_IMAGE_URI=$(aws ecr describe-images --repository-name ${{ secrets.ECR_REPOSITORY }} --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageTags[?starts_with(@, `frontend-`)] | [0]' --output text)
+          BACKEND_IMAGE_URI=$(aws ecr describe-images --repository-name ${{ secrets.ECR_REPOSITORY }} --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageTags[?starts_with(@, `backend-`)] | [0]' --output text)
+          echo "FRONTEND_IMAGE_URI=$FRONTEND_IMAGE_URI" >> $GITHUB_ENV
+          echo "BACKEND_IMAGE_URI=$BACKEND_IMAGE_URI" >> $GITHUB_ENV
+
       - name: Build and push Frontend Docker image
         if: env.CODE_CHANGED == 'true'
         run: |
