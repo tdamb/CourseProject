@@ -15,8 +15,6 @@ permissions:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-    env:
-      DEPLOYMENT_TAG: "deployment-${{ github.run_id }}-${{ github.run_attempt }}"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -72,12 +70,17 @@ jobs:
           docker push $BACKEND_IMAGE_TAG
           echo "BACKEND_IMAGE_URI=$BACKEND_IMAGE_TAG" >> $GITHUB_ENV
 
+      - name: Set Deployment Tag
+        run: echo "DEPLOYMENT_TAG=deployment-${{github.run_id}}-${{github.run_attempt}}" >> $GITHUB_ENV
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
 
       - name: Initialize Terraform
         run: terraform init
         working-directory: ./infrastructure
+        env:
+          TF_VAR_deployment_tag: ${{env.DEPLOYMENT_TAG}}
 
       - name: Pre-Deployment Capacity Check
         run: |
@@ -95,7 +98,6 @@ jobs:
         run: |
           echo "Waiting for new EC2 instances tagged with ${DEPLOYMENT_TAG} to be fully operational..."
           while : ; do
-
             INSTANCE_STATUS=$(aws ec2 describe-instances \
               --filters "Name=tag:DeploymentTag,Values=${DEPLOYMENT_TAG}" \
                         "Name=instance-state-name,Values=running" \
