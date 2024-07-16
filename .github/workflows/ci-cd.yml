@@ -45,7 +45,6 @@ jobs:
             echo "CODE_CHANGED=true" >> $GITHUB_ENV
           else
             echo "CODE_CHANGED=false" >> $GITHUB_ENV
-          fi
 
       - name: Build and push Frontend Docker image
         if: env.CODE_CHANGED == 'true'
@@ -93,7 +92,6 @@ jobs:
 
       - name: Post-Deployment Scaling Down
         run: |
-          # Assuming desired capacity increased during pre-deployment
           CURRENT_CAPACITY=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names "terraform-20240709181605878000000001" --query 'AutoScalingGroups[0].DesiredCapacity' --output text)
           if [[ "$CURRENT_CAPACITY" -gt 2 ]]; then
             echo "Scaling down the ASG"
