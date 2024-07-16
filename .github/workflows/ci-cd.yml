@@ -15,7 +15,8 @@ permissions:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-
+    env:
+      DEPLOYMENT_TAG: "deployment-${{ github.run_id }}-${{ github.run_attempt }}"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -92,12 +93,11 @@ jobs:
 
       - name: Wait for EC2 Instances to be Ready
         run: |
-          CURRENT_LAUNCH_TAG="LaunchTime=$(date +%Y-%m-%dT%H:%M:%S)"
-          echo "Waiting for new EC2 instances tagged with ${CURRENT_LAUNCH_TAG} to be fully operational..."
+          echo "Waiting for new EC2 instances tagged with ${DEPLOYMENT_TAG} to be fully operational..."
           while : ; do
 
             INSTANCE_STATUS=$(aws ec2 describe-instances \
-              --filters "Name=tag:LaunchTime,Values=${CURRENT_LAUNCH_TAG}" \
+              --filters "Name=tag:LaunchTime,Values=${DEPLOYMENT_TAG}" \
                         "Name=instance-state-name,Values=running" \
               --query 'Reservations[*].Instances[*].[InstanceId, State.Name]' --output text)
 
