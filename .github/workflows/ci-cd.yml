@@ -54,12 +54,19 @@ jobs:
           echo "TF_VAR_frontend_image_uri=${FRONTEND_IMAGE_URI:-none}" >> $GITHUB_ENV
           echo "TF_VAR_backend_image_uri=${BACKEND_IMAGE_URI:-none}" >> $GITHUB_ENV
 
+          - name: Login to Amazon ECR
+          id: login-ecr
+          uses: aws-actions/amazon-ecr-login@v1
+
       - name: Build and push Frontend Docker image
         if: env.CODE_CHANGED == 'true'
         run: |
           ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
-
-          FRONTEND_IMAGE_TAG="$ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:frontend-${{ env.DATETIME }}"
+          echo "Using ECR_REGISTRY: $ECR_REGISTRY"
+          DATETIME=$(date '+%Y-%m-%d-%H-%M')
+          echo "Formatted date: $DATETIME"
+          FRONTEND_IMAGE_TAG="$ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:frontend-$DATETIME"
+          echo "Building Docker image with tag: $FRONTEND_IMAGE_TAG"
           docker build -t $FRONTEND_IMAGE_TAG ./frontend/create-react-app
           docker push $FRONTEND_IMAGE_TAG
           echo "FRONTEND_IMAGE_URI=$FRONTEND_IMAGE_TAG" >> $GITHUB_ENV
