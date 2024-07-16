@@ -83,11 +83,18 @@ jobs:
         run: terraform init
         working-directory: ./infrastructure
 
-      - name: Set Deployment Tag in Terraform
-        run: |
-          terraform apply -auto-approve -var="deployment_tag=${{ env.DEPLOYMENT_TAG }}" \
-            -var="frontend_image_uri=${{ env.TF_VAR_frontend_image_uri }}" \
-            -var="backend_image_uri=${{ env.TF_VAR_backend_image_uri }}"
+      # - name: Set Deployment Tag in Terraform
+      #   run: |
+      #     terraform apply -auto-approve -var="deployment_tag=${{ env.DEPLOYMENT_TAG }}" \
+      #       -var="frontend_image_uri=${{ env.TF_VAR_frontend_image_uri }}" \
+      #       -var="backend_image_uri=${{ env.TF_VAR_backend_image_uri }}"
+      #   working-directory: ./infrastructure
+
+      - name: Refresh Terraform State
+        run: terraform refresh \
+          -var="deployment_tag=${{ env.DEPLOYMENT_TAG }}" \
+          -var="frontend_image_uri=${{ env.TF_VAR_frontend_image_uri }}" \
+          -var="backend_image_uri=${{ env.TF_VAR_backend_image_uri }}"
         working-directory: ./infrastructure
 
       - name: Pre-Deployment Capacity Check
