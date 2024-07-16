@@ -19,7 +19,17 @@ resource "aws_launch_template" "ecs_instance" {
   monitoring {
     enabled = false
   }
+
+  tag_specifications {
+    resource_type = "instance"
+    tags = {
+      Name       = "ECS Instance for CA_Project"
+      LaunchTime = "${timestamp()}"
+    }
+  }
 }
+
+
 
 resource "aws_iam_instance_profile" "ecs_instance" {
   name = "ecs_instance_profile"

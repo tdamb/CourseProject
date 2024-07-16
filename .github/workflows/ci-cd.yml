@@ -92,18 +92,23 @@ jobs:
 
       - name: Wait for EC2 Instances to be Ready
         run: |
-          echo "Waiting for new EC2 instances to be fully operational..."
-          while : ; do
-            # Check if the instances are in a 'Healthy' state
-            INSTANCE_STATUS=$(aws ec2 describe-instance-status --query 'InstanceStatuses[?InstanceState.Name==`running` && SystemStatus.Status==`ok` && InstanceStatus.Status==`ok`].InstanceId' --output text)
-            if [[ -n "$INSTANCE_STATUS" ]]; then
-              echo "Instances are ready."
-              break
-            else
-              echo "Instances are not ready yet, waiting..."
-              sleep 30
-            fi
+          CURRENT_LAUNCH_TAG="LaunchTime=${timestamp()}"
+          echo "Waiting for new EC2 instances tagged with ${CURRENT_LAUNCH_TAG} to be fully operational..."
+          while: ; do
+            INSTANCE_STATUS=$(aws ec2 describe-instances \
+              --filters "Name=tag:LaunchTime,Values=${CURRENT_LAUNCH_TAG}" \
+                        "Name=instance-state-name,Values=running" \
+          --query 'Reservations[*].Instances[*].[InstanceId, State.Name]' --output text)
+
+          if [[ -n "$INSTANCE_STATUS" ]]; then
+            echo "Newly launched instances are ready."
+            break
+          else
+            echo "Newly launched instances are not ready yet, waiting..."
+            sleep 30
+          fi
           done
+
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
