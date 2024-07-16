@@ -127,7 +127,8 @@ jobs:
           AWS_REGION: ${{ secrets.AWS_REGION }}
 
       - name: Apply Terraform Configuration
-        run: terraform apply -auto-approve
+        run: |
+          terraform apply -auto-approve -var="deployment_tag=${{ env.DEPLOYMENT_TAG }}"
         working-directory: ./infrastructure
 
       - name: Post-Deployment Scaling Down
