@@ -30,14 +30,12 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Login to Amazon ECR
-        id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
       - name: Set the Date-Time Tag
         run: echo "DATETIME=$(date '+prod-%Y-%m-%d-%H-%M')" >> $GITHUB_ENV
 
       - name: Determine Change Path
-        id: check_paths
         run: |
           CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
           echo "Changed files: $CHANGED_FILES"
