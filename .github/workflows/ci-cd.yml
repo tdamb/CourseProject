@@ -57,9 +57,15 @@ jobs:
 
           echo "Fetching frontend image tag..."
           FRONTEND_IMAGE_URI=$(aws ecr describe-images --repository-name ${{ secrets.ECR_REPOSITORY }} --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageTags[?starts_with(@, `frontend-prod-`)] | [0]' --output text)
+          if [[ "$FRONTEND_IMAGE_URI" == "None" ]]; then
+            FRONTEND_IMAGE_URI=$(aws ecr describe-images --repository-name ${{ secrets.ECR_REPOSITORY }} --query 'imageDetails[?contains(imageTags, `frontend-prod-`) == `true`].imageTags[] | [?starts_with(@, `frontend-prod-`)] | [-1]' --output text)
+          fi
 
           echo "Fetching backend image tag..."
           BACKEND_IMAGE_URI=$(aws ecr describe-images --repository-name ${{ secrets.ECR_REPOSITORY }} --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageTags[?starts_with(@, `backend-prod-`)] | [0]' --output text)
+          if [[ "$BACKEND_IMAGE_URI" == "None" ]]; then
+            BACKEND_IMAGE_URI=$(aws ecr describe-images --repository-name ${{ secrets.ECR_REPOSITORY }} --query 'imageDetails[?contains(imageTags, `backend-prod-`) == `true`].imageTags[] | [?starts_with(@, `backend-prod-`)] | [-1]' --output text)
+          fi
 
           echo "Fetched frontend image URI: $FRONTEND_IMAGE_URI"
           echo "Fetched backend image URI: $BACKEND_IMAGE_URI"
