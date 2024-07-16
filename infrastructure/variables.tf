@@ -39,3 +39,8 @@ variable "subnet_ids" {
   type        = list(string)
   default     = ["subnet-087199f55d5620633", "subnet-063c840d132f29f3e", "subnet-0ddf354cc1aac88db"]
 }
+
+variable "deployment_tag" {
+  description = "Unique deployment identifier"
+  type        = string
+}

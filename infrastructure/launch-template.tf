@@ -24,7 +24,7 @@ resource "aws_launch_template" "ecs_instance" {
     resource_type = "instance"
     tags = {
       Name       = "ECS Instance for CA_Project"
-      LaunchTime = "${timestamp()}"
+      LaunchTime = var.deployment_tag
     }
   }
 }
