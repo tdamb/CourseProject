@@ -5,10 +5,10 @@ resource "aws_ecs_service" "example_service" {
   desired_count   = 1
   launch_type     = "EC2"
 
-  network_configuration {
-    subnets         = var.subnet_ids
-    security_groups = [var.vpc_security_group_id]
-  }
+  # network_configuration {
+  #   subnets         = var.subnet_ids
+  #   security_groups = [var.vpc_security_group_id]
+  # }
   force_new_deployment = true
 
   depends_on = [aws_autoscaling_group.ecs_asg]
