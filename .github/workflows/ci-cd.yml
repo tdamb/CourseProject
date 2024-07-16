@@ -45,9 +45,9 @@ jobs:
           else
             echo "CODE_CHANGED=false" >> $GITHUB_ENV
           fi
+          echo "Code changed: $CODE_CHANGED"
 
       - name: Fetch Latest Image Tags
-        if: env.CODE_CHANGED == 'false'
         run: |
           FRONTEND_IMAGE_URI=$(aws ecr describe-images --repository-name ${{ secrets.ECR_REPOSITORY }} --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageTags[?starts_with(@, `frontend-`)] | [0]' --output text)
           BACKEND_IMAGE_URI=$(aws ecr describe-images --repository-name ${{ secrets.ECR_REPOSITORY }} --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageTags[?starts_with(@, `backend-`)] | [0]' --output text)
