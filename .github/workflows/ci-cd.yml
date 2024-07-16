@@ -91,10 +91,11 @@ jobs:
       #   working-directory: ./infrastructure
 
       - name: Refresh Terraform State
-        run: terraform refresh \
-          -var="deployment_tag=${{ env.DEPLOYMENT_TAG }}" \
-          -var="frontend_image_uri=${{ env.TF_VAR_frontend_image_uri }}" \
-          -var="backend_image_uri=${{ env.TF_VAR_backend_image_uri }}"
+        run: |
+          terraform refresh \
+            -var="deployment_tag=${{ env.DEPLOYMENT_TAG }}" \
+            -var="frontend_image_uri=${{ env.FRONTEND_IMAGE_URI }}" \
+            -var="backend_image_uri=${{ env.BACKEND_IMAGE_URI }}"
         working-directory: ./infrastructure
 
       - name: Pre-Deployment Capacity Check
