@@ -97,7 +97,7 @@ jobs:
           while : ; do
 
             INSTANCE_STATUS=$(aws ec2 describe-instances \
-              --filters "Name=tag:LaunchTime,Values=${DEPLOYMENT_TAG}" \
+              --filters "Name=tag:DeploymentTag,Values=${DEPLOYMENT_TAG}" \
                         "Name=instance-state-name,Values=running" \
               --query 'Reservations[*].Instances[*].[InstanceId, State.Name]' --output text)
 
