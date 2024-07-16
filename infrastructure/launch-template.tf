@@ -23,8 +23,8 @@ resource "aws_launch_template" "ecs_instance" {
   tag_specifications {
     resource_type = "instance"
     tags = {
-      Name       = "ECS Instance for CA_Project"
-      LaunchTime = var.deployment_tag
+      Name          = "ECS Instance for CA_Project"
+      DeploymentTag = var.deployment_tag
     }
   }
 }
