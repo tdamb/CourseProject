@@ -45,6 +45,7 @@ jobs:
             echo "CODE_CHANGED=true" >> $GITHUB_ENV
           else
             echo "CODE_CHANGED=false" >> $GITHUB_ENV
+          fi
 
       - name: Build and push Frontend Docker image
         if: env.CODE_CHANGED == 'true'
