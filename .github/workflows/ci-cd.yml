@@ -52,8 +52,14 @@ jobs:
 
       - name: Fetch Latest Image Tags
         run: |
+          echo "Fetching frontend image tag..."
+          aws ecr describe-images --repository-name ${{ secrets.ECR_REPOSITORY }} --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageTags[?starts_with(@, `frontend-prod-`)] | [0]' --output text
           FRONTEND_IMAGE_URI=$(aws ecr describe-images --repository-name ${{ secrets.ECR_REPOSITORY }} --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageTags[?starts_with(@, `frontend-prod-`)] | [0]' --output text)
+          echo "Fetching backend image tag..."
+          aws ecr describe-images --repository-name ${{ secrets.ECR_REPOSITORY }} --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageTags[?starts_with(@, `backend-prod-`)] | [0]' --output text
           BACKEND_IMAGE_URI=$(aws ecr describe-images --repository-name ${{ secrets.ECR_REPOSITORY }} --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageTags[?starts_with(@, `backend-prod-`)] | [0]' --output text)
+          echo "Fetched frontend image URI: $FRONTEND_IMAGE_URI"
+          echo "Fetched backend image URI: $BACKEND_IMAGE_URI"
           echo "TF_VAR_frontend_image_uri=${FRONTEND_IMAGE_URI:-none}" >> $GITHUB_ENV
           echo "TF_VAR_backend_image_uri=${BACKEND_IMAGE_URI:-none}" >> $GITHUB_ENV
 
