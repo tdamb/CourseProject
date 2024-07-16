@@ -58,6 +58,7 @@ jobs:
         if: env.CODE_CHANGED == 'true'
         run: |
           ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
+
           FRONTEND_IMAGE_TAG="$ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:frontend-${{ env.DATETIME }}"
           docker build -t $FRONTEND_IMAGE_TAG ./frontend/create-react-app
           docker push $FRONTEND_IMAGE_TAG
