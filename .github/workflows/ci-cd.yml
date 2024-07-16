@@ -112,7 +112,8 @@ jobs:
               --query 'Reservations[*].Instances[*].[InstanceId, State.Name]' --output text)
 
             if [[ -n "$INSTANCE_STATUS" ]]; then
-              echo "Newly launched instances are ready."
+              echo "Newly launched instances are ready. We will wait 90 seconds"
+              sleep 90
               break
             else
               echo "Newly launched instances are not ready yet, waiting..."
@@ -128,9 +129,6 @@ jobs:
       - name: Apply Terraform Configuration
         run: terraform apply -auto-approve
         working-directory: ./infrastructure
-        env:
-          TF_VAR_frontend_image_uri: ${{ env.FRONTEND_IMAGE_URI }}
-          TF_VAR_backend_image_uri: ${{ env.BACKEND_IMAGE_URI }}
 
       - name: Post-Deployment Scaling Down
         run: |
