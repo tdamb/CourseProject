@@ -65,11 +65,7 @@ jobs:
         if: env.CODE_CHANGED == 'true'
         run: |
           ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
-          echo "Using ECR_REGISTRY: $ECR_REGISTRY"
-          DATETIME=$(date '+%Y-%m-%d-%H-%M')
-          echo "Formatted date: $DATETIME"
-          FRONTEND_IMAGE_TAG="$ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:frontend-$DATETIME"
-          echo "Building Docker image with tag: $FRONTEND_IMAGE_TAG"
+          FRONTEND_IMAGE_TAG="$ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:frontend-${{ env.DATETIME }}"
           docker build -t $FRONTEND_IMAGE_TAG ./frontend/create-react-app
           docker push $FRONTEND_IMAGE_TAG
           echo "FRONTEND_IMAGE_URI=$FRONTEND_IMAGE_TAG" >> $GITHUB_ENV
