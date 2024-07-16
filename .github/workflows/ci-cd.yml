@@ -45,7 +45,10 @@ jobs:
           else
             echo "CODE_CHANGED=false" >> $GITHUB_ENV
           fi
-          echo "Code changed: $CODE_CHANGED"
+          echo "Code changed: $CODE_CHANGED"  # Debugging output
+
+      - name: Debug CODE_CHANGED
+        run: echo "CODE_CHANGED is set to '${{ env.CODE_CHANGED }}'"
 
       - name: Fetch Latest Image Tags
         run: |
