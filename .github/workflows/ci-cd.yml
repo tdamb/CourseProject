@@ -95,6 +95,7 @@ jobs:
           CURRENT_LAUNCH_TAG="LaunchTime=$(date +%Y-%m-%dT%H:%M:%S)"
           echo "Waiting for new EC2 instances tagged with ${CURRENT_LAUNCH_TAG} to be fully operational..."
           while : ; do
+
             INSTANCE_STATUS=$(aws ec2 describe-instances \
               --filters "Name=tag:LaunchTime,Values=${CURRENT_LAUNCH_TAG}" \
                         "Name=instance-state-name,Values=running" \
