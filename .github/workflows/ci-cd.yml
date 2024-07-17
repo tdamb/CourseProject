@@ -52,6 +52,7 @@ jobs:
         run: echo "CODE_CHANGED is set to '${{ env.CODE_CHANGED }}'"
 
       - name: Fetch Latest Image Tags
+        if: env.CODE_CHANGED == 'false'
         run: |
           echo "Listing all image tags in the repository..."
           aws ecr describe-images --repository-name ${{ secrets.ECR_REPOSITORY }} --query 'imageDetails[*].imageTags' --output json
@@ -101,6 +102,7 @@ jobs:
         working-directory: ./infrastructure
 
       - name: Apply Specific Terraform Configuration
+        if: env.CODE_CHANGED == 'false'
         run: |
           terraform apply -auto-approve \
             -var="deployment_tag=${{ env.DEPLOYMENT_TAG }}" \
