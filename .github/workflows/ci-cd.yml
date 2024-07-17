@@ -75,23 +75,26 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Build and push Frontend Docker image
-        if: env.CODE_CHANGED == 'true'
+      - name: Fetch Latest Image Tags
         run: |
-          ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
-          FRONTEND_IMAGE_TAG="$ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:frontend-${{ env.DATETIME }}"
-          docker build -t $FRONTEND_IMAGE_TAG ./frontend/create-react-app
-          docker push $FRONTEND_IMAGE_TAG
-          echo "FRONTEND_IMAGE_URI=$FRONTEND_IMAGE_TAG" >> $GITHUB_ENV
+          echo "Listing all image tags in the repository..."
+          aws ecr describe-images --repository-name ${{ secrets.ECR_REPOSITORY }} --query 'imageDetails[*].imageTags' --output json
 
-      - name: Build and push Backend Docker image
-        if: env.CODE_CHANGED == 'true'
-        run: |
-          ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
-          BACKEND_IMAGE_TAG="$ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:backend-${{ env.DATETIME }}"
-          docker build -t $BACKEND_IMAGE_TAG ./backend
-          docker push $BACKEND_IMAGE_TAG
-          echo "BACKEND_IMAGE_URI=$BACKEND_IMAGE_TAG" >> $GITHUB_ENV
+          echo "Fetching frontend image tag..."
+          FRONTEND_IMAGE_TAGS=$(aws ecr describe-images --repository-name ${{ secrets.ECR_REPOSITORY }} --query 'imageDetails[*].imageTags[]' --output text)
+          FRONTEND_IMAGE_TAG=$(echo "$FRONTEND_IMAGE_TAGS" | tr '\t' '\n' | grep -E '^frontend-prod-' | sort | tail -n 1)
+          FRONTEND_IMAGE_URI="${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${FRONTEND_IMAGE_TAG}"
+
+          echo "Fetching backend image tag..."
+          BACKEND_IMAGE_TAGS=$(aws ecr describe-images --repository-name ${{ secrets.ECR_REPOSITORY }} --query 'imageDetails[*].imageTags[]' --output text)
+          BACKEND_IMAGE_TAG=$(echo "$BACKEND_IMAGE_TAGS" | tr '\t' '\n' | grep -E '^backend-prod-' | sort | tail -n 1)
+          BACKEND_IMAGE_URI="${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${BACKEND_IMAGE_TAG}"
+
+          echo "Fetched frontend image URI: $FRONTEND_IMAGE_URI"
+          echo "Fetched backend image URI: $BACKEND_IMAGE_URI"
+
+          echo "TF_VAR_frontend_image_uri=${FRONTEND_IMAGE_URI:-none}" >> $GITHUB_ENV
+          echo "TF_VAR_backend_image_uri=${BACKEND_IMAGE_URI:-none}" >> $GITHUB_ENV
 
       - name: Set Deployment Tag
         run: echo "DEPLOYMENT_TAG=deployment-${{github.run_id}}-${{github.run_attempt}}" >> $GITHUB_ENV
