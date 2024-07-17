@@ -157,7 +157,6 @@ jobs:
         run: |
           CURRENT_CAPACITY=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names "terraform-20240709181605878000000001" --query 'AutoScalingGroups[0].DesiredCapacity' --output text)
           if [[ "$CURRENT_CAPACITY" -gt 2 ]]; then
-
             echo "Scaling down the ASG"
             aws autoscaling set-desired-capacity --auto-scaling-group-name "terraform-20240709181605878000000001" --desired-capacity $(($CURRENT_CAPACITY - 1))
           fi
