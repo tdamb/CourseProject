@@ -11,8 +11,8 @@ variable "backend_image_uri" {
 resource "aws_ecs_task_definition" "CA_Project" {
   family                   = "CA_Project"
   network_mode             = "bridge"
-  execution_role_arn       = "arn:aws:iam::637423330216:role/ecsTaskExecutionRole"
-  task_role_arn            = "arn:aws:iam::637423330216:role/TomasProjectDynamoDBAccess"
+  execution_role_arn       = "arn:aws:iam::<your_account_id>:role/ecsTaskExecutionRole"
+  task_role_arn            = "arn:aws:iam::<your_account_id>:role/TomasProjectDynamoDBAccess"
   requires_compatibilities = ["EC2"]
   cpu                      = "1024"
   memory                   = "922"
