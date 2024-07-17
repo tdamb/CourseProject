@@ -4,9 +4,9 @@ resource "aws_autoscaling_group" "ecs_asg" {
     version = "$Latest"
   }
 
-  min_size         = 1
+  min_size         = 0
   max_size         = 3
-  desired_capacity = 2
+  desired_capacity = 0
 
   vpc_zone_identifier = var.subnet_ids
 
