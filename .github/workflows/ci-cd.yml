@@ -13,7 +13,6 @@ on:
         type: choice
         description: "Choose action to perform"
         required: true
-        default: "deploy"
         options:
           - "deploy"
           - "shutdown"
