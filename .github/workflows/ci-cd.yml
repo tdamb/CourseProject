@@ -64,7 +64,7 @@ jobs:
           echo "Changed files: $CHANGED_FILES"
           if [[ "$CHANGED_FILES" =~ "frontend/" ]] || [[ "$CHANGED_FILES" =~ "backend/" ]]; then
             echo "CODE_CHANGED=true" >> $GITHUB_ENV
-          else
+          else:
             echo "CODE_CHANGED=false" >> $GITHUB_ENV
           fi
           echo "Code changed: $CHANGED_FILES"  # Debugging output
