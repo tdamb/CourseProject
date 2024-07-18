@@ -23,8 +23,14 @@ permissions:
   id-token: write
 
 jobs:
+  debug-inputs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print Action Input
+        run: echo "Action - ${{github.event.inputs.action}}"
+
   build-and-push:
-    if: github.event.inputs.action == 'deploy'
+    if: ${{ github.event.inputs.action == 'deploy' }}
     runs-on: ubuntu-latest
     env:
       DEPLOYMENT_TAG: "deployment-${{ github.run_id }}-${{ github.run_attempt }}"
@@ -62,8 +68,8 @@ jobs:
       - name: Debug CODE_CHANGED
         run: echo "CODE_CHANGED is set to '${{ env.CODE_CHANGED }}'"
 
-      - name: Fetch Latest Image Tags
-        if: env.CODE_CHANGED == 'false'
+      - name: Fetch Latest Image Tags (if no code change)
+        if: ${{ env.CODE_CHANGED == 'false' }}
         run: |
           echo "Listing all image tags in the repository..."
           aws ecr describe-images --repository-name ${{ secrets.ECR_REPOSITORY }} --query 'imageDetails[*].imageTags' --output json
@@ -85,7 +91,7 @@ jobs:
           echo "TF_VAR_backend_image_uri=${BACKEND_IMAGE_URI:-none}" >> $GITHUB_ENV
 
       - name: Build and push Frontend Docker image
-        if: env.CODE_CHANGED == 'true'
+        if: ${{ env.CODE_CHANGED == 'true' }}
         run: |
           ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
           FRONTEND_IMAGE_TAG="$ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:frontend-${{ env.DATETIME }}"
@@ -94,7 +100,7 @@ jobs:
           echo "FRONTEND_IMAGE_URI=$FRONTEND_IMAGE_TAG" >> $GITHUB_ENV
 
       - name: Build and push Backend Docker image
-        if: env.CODE_CHANGED == 'true'
+        if: ${{ env.CODE_CHANGED == 'true' }}
         run: |
           ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
           BACKEND_IMAGE_TAG="$ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:backend-${{ env.DATETIME }}"
@@ -112,8 +118,8 @@ jobs:
         run: terraform init
         working-directory: ./infrastructure
 
-      - name: Apply Specific Terraform Configuration
-        if: env.CODE_CHANGED == 'false'
+      - name: Apply Specific Terraform Configuration (if no code change)
+        if: ${{ env.CODE_CHANGED == 'false' }}
         run: |
           terraform apply -auto-approve \
             -var="deployment_tag=${{ env.DEPLOYMENT_TAG }}" \
@@ -156,7 +162,6 @@ jobs:
               sleep 30
             fi
           done
-
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -180,7 +185,7 @@ jobs:
           AWS_REGION: ${{ secrets.AWS_REGION }}
 
   shutdown:
-    if: github.event.inputs.action == 'shutdown'
+    if: ${{ github.event.inputs.action == 'shutdown' }}
     runs-on: ubuntu-latest
     steps:
       - name: Configure AWS credentials
