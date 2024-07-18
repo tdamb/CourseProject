@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Print Action Input
-        run: echo "Action - ${{github.event.inputs.action}}"
+        run: echo "Action - ${{ github.event.inputs.action }}"
 
   build-and-push:
     if: ${{ github.event.inputs.action == 'deploy' }}
