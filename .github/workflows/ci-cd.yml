@@ -25,6 +25,8 @@ jobs:
   debug-inputs:
     runs-on: ubuntu-latest
     steps:
+      - name: Delay for Debugging
+        run: sleep 5 # Waits for 5 seconds before proceeding
       - name: Print Action Input
         run: echo "Action - '${{ github.event.inputs.action }}'"
 
