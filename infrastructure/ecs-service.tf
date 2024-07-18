@@ -20,7 +20,7 @@ resource "aws_ecs_service" "example_service" {
         dns_name = "frontend"
         port     = 80
       }
-      port_name      = "frontend" // As defined in the task definition
+      port_name      = "frontend"
       discovery_name = "frontend"
     }
     service {

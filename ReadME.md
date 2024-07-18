@@ -29,6 +29,7 @@ This URL shortening functionality project is a small part of a larger project I 
 - [Security](#security)
 - [Application](#application)
 - [Code Versioning](#code-versioning)
+- [License](#license)
 
 ## Introduction
 
@@ -211,6 +212,22 @@ Environment variables for configuration, such as AWS region and DynamoDB table n
 ### Code Versioning
 
 The project uses Git for version control, with the repository hosted on GitHub. The GitHub Actions workflow automates the CI/CD process, ensuring that the latest code changes are built, tested, and deployed efficiently.
+
+## License
+
+### Material-UI (MUI)
+
+This project utilizes Material-UI components to enhance the UI design. MUI is a popular React UI framework that offers a comprehensive suite of UI tools to aid in building robust and attractive interfaces efficiently.
+
+#### Licensing
+
+MUI is available under the MIT license for the core components, which allows for free usage in commercial applications with no requirement to disclose the source code. The MIT license is permissive and simple, enabling broad usage across various types of projects.
+
+If you are using any of MUI's premium components or themes (part of MUI X), be aware that these may require a commercial license, especially for use in production environments. For detailed information on licensing, including potential costs for commercial usage, please refer to the [MUI Pricing Page](https://mui.com/pricing/).
+
+#### Compliance
+
+Ensure that you comply with the licensing terms of all MUI components used within this project. If you modify any MUI components, note that the modified versions must also be shared under the same MIT license. Always refer to the original [MUI License Document](https://github.com/mui/material-ui/blob/master/LICENSE) for the most accurate licensing information.
 
 ```
 
