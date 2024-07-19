@@ -62,11 +62,15 @@ jobs:
         run: |
           echo "Waiting for new EC2 instances tagged with ${DEPLOYMENT_TAG} to be fully operational..."
           while : ; do
-            INSTANCE_HEALTH=$(aws ec2 describe-instance-status \
-              --filters "Name=instance-state-name,Values=running" \
-                        "Name=tag:DeploymentTag,Values=${DEPLOYMENT_TAG}" \
-              --query 'InstanceStatuses[*].InstanceStatus.Status' --output text)
-            if [[ "$INSTANCE_HEALTH" == "ok" ]]; then
+            INSTANCE_STATUS=$(aws ec2 describe-instances \
+              --filters "Name=tag:DeploymentTag,Values=${DEPLOYMENT_TAG}" \
+                        "Name=instance-state-name,Values=running" \
+              --query 'Reservations[*].Instances[*].State.Name' --output text)
+            INSTANCE_HEALTH=$(aws ec2 describe-instances \
+              --filters "Name=tag:DeploymentTag,Values=${DEPLOYMENT_TAG}" \
+                        "Name=instance-state-name,Values=running" \
+              --query 'Reservations[*].Instances[*].InstanceStatus.Status' --output text)
+            if [[ "$INSTANCE_STATUS" == "running" ]] && [[ "$INSTANCE_HEALTH" == "ok" ]]; then
               echo "Newly launched instances are healthy."
               break
             else
