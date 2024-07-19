@@ -17,6 +17,27 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Fetch Latest Image Tags
+        run: |
+          echo "Fetching latest frontend and backend image tags..."
+          FRONTEND_IMAGE_TAGS=$(aws ecr describe-images --repository-name ${{ secrets.ECR_REPOSITORY }} --query 'imageDetails[*].imageTags[]' --output text)
+          FRONTEND_IMAGE_TAG=$(echo "$FRONTEND_IMAGE_TAGS" | tr '\t' '\n' | grep -E '^frontend-prod-' | sort | tail -n 1)
+          FRONTEND_IMAGE_URI="${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${FRONTEND_IMAGE_TAG}"
+
+          BACKEND_IMAGE_TAGS=$(aws ecr describe-images --repository-name ${{ secrets.ECR_REPOSITORY }} --query 'imageDetails[*].imageTags[]' --output text)
+          BACKEND_IMAGE_TAG=$(echo "$BACKEND_IMAGE_TAGS" | tr '\t' '\n' | grep -E '^backend-prod-' | sort | tail -n 1)
+          BACKEND_IMAGE_URI="${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${BACKEND_IMAGE_TAG}"
+
+          echo "Fetched frontend image URI: $FRONTEND_IMAGE_URI"
+          echo "Fetched backend image URI: $BACKEND_IMAGE_URI"
+
+          echo "TF_VAR_frontend_image_uri=${FRONTEND_IMAGE_URI:-none}" >> $GITHUB_ENV
+          echo "TF_VAR_backend_image_uri=${BACKEND_IMAGE_URI:-none}" >> $GITHUB_ENV
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
 
@@ -30,5 +51,7 @@ jobs:
             -var 'ecs_desired_count=1' \
             -var 'asg_min_size=1' \
             -var 'asg_max_size=3' \
-            -var 'asg_desired_capacity=1'
+            -var 'asg_desired_capacity=1' \
+            -var "frontend_image_uri=${{ env.TF_VAR_frontend_image_uri }}" \
+            -var "backend_image_uri=${{ env.TF_VAR_backend_image_uri }}"
         working-directory: ./infrastructure
