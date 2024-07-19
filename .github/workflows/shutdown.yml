@@ -10,6 +10,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Set Deployment Tag
+        run: echo "DEPLOYMENT_TAG=shutdown-${{ github.run_id }}-${{ github.run_attempt }}" >> $GITHUB_ENV
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -49,5 +52,6 @@ jobs:
             -var 'asg_max_size=3' \
             -var 'asg_desired_capacity=0' \
             -var "frontend_image_uri=${{ env.TF_VAR_frontend_image_uri }}" \
-            -var "backend_image_uri=${{ env.TF_VAR_backend_image_uri }}"
+            -var "backend_image_uri=${{ env.TF_VAR_backend_image_uri }}" \
+            -var "deployment_tag=${{ env.DEPLOYMENT_TAG }}"
         working-directory: ./infrastructure
