@@ -58,16 +58,26 @@ jobs:
             -var="deployment_tag=${{ env.DEPLOYMENT_TAG }}"
         working-directory: ./infrastructure
 
-      - name: Wait for EC2 Instances to be Ready
+        - name: Wait for EC2 Instances to be Ready
         run: |
           echo "Waiting for new EC2 instances tagged with ${DEPLOYMENT_TAG} to be fully operational..."
           while : ; do
-            INSTANCE_STATUS=$(aws ec2 describe-instance-status \
+            INSTANCE_IDS=$(aws ec2 describe-instances \
               --filters "Name=tag:DeploymentTag,Values=${DEPLOYMENT_TAG}" \
                         "Name=instance-state-name,Values=running" \
-              --query 'InstanceStatuses[*].[InstanceId, SystemStatus.Status, InstanceStatus.Status]' --output text)
+              --query 'Reservations[*].Instances[*].InstanceId' --output text)
             
-            if [[ $(echo "$INSTANCE_STATUS" | grep -c 'ok') -eq 2 ]]; then
+            if [ -z "$INSTANCE_IDS" ]; then
+              echo "No instances found with the tag ${DEPLOYMENT_TAG}. Waiting..."
+              sleep 30
+              continue
+            fi
+            
+            INSTANCE_STATUS=$(aws ec2 describe-instance-status \
+              --instance-ids $INSTANCE_IDS \
+              --query 'InstanceStatuses[*].[SystemStatus.Status, InstanceStatus.Status]' --output text)
+            
+            if echo "$INSTANCE_STATUS" | grep -q -E 'ok[[:space:]]+ok'; then
               echo "Newly launched instances are healthy."
               break
             else
@@ -75,6 +85,7 @@ jobs:
               sleep 30
             fi
           done
+      
 
       - name: Apply Full Terraform Configuration
         run: |
