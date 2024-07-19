@@ -10,6 +10,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Set Deployment Tag
+        run: echo "DEPLOYMENT_TAG=deployment-${{ github.run_id }}-${{ github.run_attempt }}" >> $GITHUB_ENV
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -45,13 +48,38 @@ jobs:
         run: terraform init
         working-directory: ./infrastructure
 
-      - name: Apply Terraform Configuration for Scaling Up ECS and ASG
+      - name: Apply ASG Terraform Configuration
         run: |
           terraform apply -auto-approve \
-            -var 'ecs_desired_count=1' \
-            -var 'asg_min_size=1' \
-            -var 'asg_max_size=3' \
-            -var 'asg_desired_capacity=1' \
-            -var "frontend_image_uri=${{ env.TF_VAR_frontend_image_uri }}" \
-            -var "backend_image_uri=${{ env.TF_VAR_backend_image_uri }}"
+            -target=aws_autoscaling_group.ecs_asg \
+            -var='asg_min_size=1' \
+            -var='asg_max_size=3' \
+            -var='asg_desired_capacity=1' \
+            -var="deployment_tag=${{ env.DEPLOYMENT_TAG }}"
+        working-directory: ./infrastructure
+
+      - name: Wait for EC2 Instances to be Ready
+        run: |
+          echo "Waiting for new EC2 instances tagged with ${DEPLOYMENT_TAG} to be fully operational..."
+          while : ; do
+            INSTANCE_HEALTH=$(aws ec2 describe-instance-status \
+              --filters "Name=instance-state-name,Values=running" \
+                        "Name=tag:DeploymentTag,Values=${DEPLOYMENT_TAG}" \
+              --query 'InstanceStatuses[*].InstanceStatus.Status' --output text)
+            if [[ "$INSTANCE_HEALTH" == "ok" ]]; then
+              echo "Newly launched instances are healthy."
+              break
+            else
+              echo "Newly launched instances are not healthy yet, waiting..."
+              sleep 30
+            fi
+          done
+
+      - name: Apply Full Terraform Configuration
+        run: |
+          terraform apply -auto-approve \
+            -var="deployment_tag=${{ env.DEPLOYMENT_TAG }}" \
+            -var='ecs_desired_count=1' \
+            -var="frontend_image_uri=${{ env.TF_VAR_frontend_image_uri }}" \
+            -var="backend_image_uri=${{ env.TF_VAR_backend_image_uri }}"
         working-directory: ./infrastructure
