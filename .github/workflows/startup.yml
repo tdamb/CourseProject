@@ -1,3 +1,4 @@
+# .github/workflows/startup.yml
 name: Startup Workflow
 on:
   workflow_dispatch:
@@ -57,7 +58,7 @@ jobs:
             -var="deployment_tag=${{ env.DEPLOYMENT_TAG }}"
         working-directory: ./infrastructure
 
-        - name: Wait for EC2 Instances to be Ready
+      - name: Wait for EC2 Instances to be Ready
         run: |
           echo "Waiting for new EC2 instances tagged with ${DEPLOYMENT_TAG} to be fully operational..."
           while : ; do
@@ -84,7 +85,6 @@ jobs:
               sleep 30
             fi
           done
-      
 
       - name: Apply Full Terraform Configuration
         run: |
