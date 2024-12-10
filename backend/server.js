@@ -68,12 +68,6 @@ app.get("/api/urls", async (req, res) => {
   }
 });
 
-// Middleware for error handling and existing test route
-app.get("/api/test", (req, res) => {
-  console.log("GET /api/test called");
-  res.json({ message: "Test API is working!" });
-});
-
 app.use((req, res, next) => {
   console.log("404 Not Found:", req.originalUrl);
   res.status(404).json({ error: "Not found" });

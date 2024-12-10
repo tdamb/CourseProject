@@ -64,17 +64,17 @@ This project uses Docker and Docker Compose to simplify dependency management an
 
 ### Build and run the containers:
 
-docker-compose up --build
+docker compose up --build
 
-This command builds the Docker images for the frontend and backend if they don't exist and starts the services as defined in the docker-compose.yml file. The frontend is accessible at http://localhost and the backend at http://localhost:3000.
+This command builds the Docker images for the frontend and backend if they don't exist and starts the services as defined in the docker compose.yml file. The frontend is accessible at http://localhost and the backend at http://localhost:3000.
 
 ### Stopping the Application
 
 To stop the application, you can use the following Docker Compose command:
 
-docker-compose down
+docker compose down
 
-This command stops and removes the containers, networks, volumes, and images created by docker-compose up.
+This command stops and removes the containers, networks, volumes, and images created by docker compose up.
 
 ## Backend Setup
 
@@ -93,18 +93,18 @@ DB table used for operations. Ensure the .env file is placed in the root of the 
 
 ### Running the Backend Service
 
-When running docker-compose up, the backend service starts automatically. It is configured to restart if it exits due to errors or when the host system reboots.
+When running docker compose up, the backend service starts automatically. It is configured to restart if it exits due to errors or when the host system reboots.
 
 ## Frontend Setup
 
 Running the Frontend Service
-The frontend service also starts automatically upon executing docker-compose up. It serves the React application on port 80, accessible via http://localhost. The frontend communicates with the backend via the configured network in Docker Compose, ensuring they can interact seamlessly.
+The frontend service also starts automatically upon executing docker compose up. It serves the React application on port 80, accessible via http://localhost. The frontend communicates with the backend via the configured network in Docker Compose, ensuring they can interact seamlessly.
 
 ## Making Changes
 
 If you make changes to the frontend, Docker Compose will detect changes made to the files and will rebuild the image if necessary. For changes to take effect, you may need to manually rebuild the image using:
 
-docker-compose up --build
+docker compose up --build
 
 This ensures that the latest changes are included in the Docker image used to run the frontend service.
 
