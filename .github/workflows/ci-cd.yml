@@ -73,7 +73,7 @@ jobs:
         run: |
           ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
           FRONTEND_IMAGE_TAG="$ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:frontend-${{ env.DATETIME }}"
-          docker build -t $FRONTEND_IMAGE_TAG ./frontend/create-react-app
+          docker build -t $FRONTEND_IMAGE_TAG ./frontend
           docker push $FRONTEND_IMAGE_TAG
           echo "FRONTEND_IMAGE_URI=$FRONTEND_IMAGE_TAG" >> $GITHUB_ENV
 
