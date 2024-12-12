@@ -1,4 +1,3 @@
-# .github/workflows/startup.yml
 name: Startup Workflow
 on:
   workflow_dispatch:
@@ -10,8 +9,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set Deployment Tag
-        run: echo "DEPLOYMENT_TAG=deployment-${{ github.run_id }}-${{ github.run_attempt }}" >> $GITHUB_ENV
+      # Remove dynamic deployment_tag setting
+      # - name: Set Deployment Tag
+      #   run: echo "DEPLOYMENT_TAG=deployment-${{ github.run_id }}-${{ github.run_attempt }}" >> $GITHUB_ENV
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -54,21 +54,20 @@ jobs:
             -target=aws_autoscaling_group.ecs_asg \
             -var='asg_min_size=1' \
             -var='asg_max_size=3' \
-            -var='asg_desired_capacity=1' \
-            -var="deployment_tag=${{ env.DEPLOYMENT_TAG }}"
+            -var='asg_desired_capacity=1'
         working-directory: ./infrastructure
 
       - name: Wait for EC2 Instances to be Ready
         run: |
-          echo "Waiting for new EC2 instances tagged with ${DEPLOYMENT_TAG} to be fully operational..."
+          echo "Waiting for new EC2 instances tagged with CA_Project_Deployment to be fully operational..."
           while : ; do
             INSTANCE_IDS=$(aws ec2 describe-instances \
-              --filters "Name=tag:DeploymentTag,Values=${DEPLOYMENT_TAG}" \
+              --filters "Name=tag:DeploymentTag,Values=CA_Project_Deployment" \
                         "Name=instance-state-name,Values=running" \
               --query 'Reservations[*].Instances[*].InstanceId' --output text)
             
             if [ -z "$INSTANCE_IDS" ]; then
-              echo "No instances found with the tag ${DEPLOYMENT_TAG}. Waiting..."
+              echo "No instances found with the tag CA_Project_Deployment. Waiting..."
               sleep 30
               continue
             fi
@@ -89,7 +88,6 @@ jobs:
       - name: Apply Full Terraform Configuration
         run: |
           terraform apply -auto-approve \
-            -var="deployment_tag=${{ env.DEPLOYMENT_TAG }}" \
             -var='ecs_desired_count=1' \
             -var="frontend_image_uri=${{ env.TF_VAR_frontend_image_uri }}" \
             -var="backend_image_uri=${{ env.TF_VAR_backend_image_uri }}"

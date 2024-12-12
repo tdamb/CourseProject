@@ -43,6 +43,7 @@ variable "subnet_ids" {
 variable "deployment_tag" {
   description = "Unique deployment identifier"
   type        = string
+  default     = "CA_Project_Deployment"
 }
 
 variable "ecs_desired_count" {

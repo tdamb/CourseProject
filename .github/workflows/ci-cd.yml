@@ -12,13 +12,12 @@ permissions:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-    env:
-      DEPLOYMENT_TAG: "deployment-${{ github.run_id }}-${{ github.run_attempt }}"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -42,7 +41,7 @@ jobs:
           else
             echo "CODE_CHANGED=false" >> $GITHUB_ENV
           fi
-          echo "Code changed: $CHANGED_FILES"  # Debugging output
+          echo "Code changed: $CHANGED_FILES"
       - name: Debug CODE_CHANGED
         run: echo "CODE_CHANGED is set to '${{ env.CODE_CHANGED }}'"
 
@@ -50,7 +49,7 @@ jobs:
         if: env.CODE_CHANGED == 'false'
         run: |
           echo "Listing all image tags in the repository..."
-          aws ecr describe-images --repository-name ${{ secrets.ECR_REPOSITORY }} --query 'imageDetails[*].imageTags' --output json 
+          aws ecr describe-images --repository-name ${{ secrets.ECR_REPOSITORY }} --query 'imageDetails[*].imageTags' --output json
 
           echo "Fetching frontend image tag..."
           FRONTEND_IMAGE_TAGS=$(aws ecr describe-images --repository-name ${{ secrets.ECR_REPOSITORY }} --query 'imageDetails[*].imageTags[]' --output text)
@@ -86,9 +85,6 @@ jobs:
           docker push $BACKEND_IMAGE_TAG
           echo "BACKEND_IMAGE_URI=$BACKEND_IMAGE_TAG" >> $GITHUB_ENV
 
-      - name: Set Deployment Tag
-        run: echo "DEPLOYMENT_TAG=deployment-${{github.run_id}}-${{github.run_attempt}}" >> $GITHUB_ENV
-
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
 
@@ -98,17 +94,16 @@ jobs:
 
       - name: Apply Specific Terraform Configuration
         if: env.CODE_CHANGED == 'false'
-        run: |
-          terraform apply -auto-approve \
-           -var="deployment_tag=${{ env.DEPLOYMENT_TAG }}" \
-           -var="frontend_image_uri=${{ env.FRONTEND_IMAGE_URI }}" \
-           -var="backend_image_uri=${{ env.BACKEND_IMAGE_URI }}" \
-           -target=aws_launch_template.ecs_instance \
-           -target=aws_ecs_task_definition.CA_Project
-        working-directory: ./infrastructure
         env:
           FRONTEND_IMAGE_URI: ${{ env.TF_VAR_frontend_image_uri }}
           BACKEND_IMAGE_URI: ${{ env.TF_VAR_backend_image_uri }}
+        run: |
+          terraform apply -auto-approve \
+           -var="frontend_image_uri=${FRONTEND_IMAGE_URI}" \
+           -var="backend_image_uri=${BACKEND_IMAGE_URI}" \
+           -target=aws_launch_template.ecs_instance \
+           -target=aws_ecs_task_definition.CA_Project
+        working-directory: ./infrastructure
 
       - name: Pre-Deployment Capacity Check
         run: |
@@ -121,12 +116,13 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ secrets.AWS_REGION }}
+
       - name: Wait for EC2 Instances to be Ready
         run: |
-          echo "Waiting for new EC2 instances tagged with ${DEPLOYMENT_TAG} to be fully operational..."
+          echo "Waiting for new EC2 instances tagged with CA_Project_Deployment to be fully operational..."
           while : ; do
             INSTANCE_STATUS=$(aws ec2 describe-instances \
-              --filters "Name=tag:DeploymentTag,Values=${DEPLOYMENT_TAG}" \
+              --filters "Name=tag:DeploymentTag,Values=CA_Project_Deployment" \
                         "Name=instance-state-name,Values=running" \
               --query 'Reservations[*].Instances[*].[InstanceId, State.Name]' --output text)
             if [[ -n "$INSTANCE_STATUS" ]]; then
@@ -142,10 +138,12 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ secrets.AWS_REGION }}
+
       - name: Apply Terraform Configuration
         run: |
-          terraform apply -auto-approve -var="deployment_tag=${{ env.DEPLOYMENT_TAG }}"
+          terraform apply -auto-approve
         working-directory: ./infrastructure
+
       - name: Post-Deployment Scaling Down
         run: |
           CURRENT_CAPACITY=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names "terraform-20240709181605878000000001" --query 'AutoScalingGroups[0].DesiredCapacity' --output text)
