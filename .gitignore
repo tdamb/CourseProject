@@ -136,3 +136,8 @@ dist
 *.py
 .terraform*
 terraform.*
+
+#other files
+
+.vscode/
+build_logs.txt

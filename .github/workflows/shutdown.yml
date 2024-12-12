@@ -16,6 +16,9 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
+      - name: Set Deployment Tag
+        run: echo "DEPLOYMENT_TAG=shutdown-${{ github.run_id }}-${{ github.run_attempt }}" >> $GITHUB_ENV
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
 
@@ -42,10 +45,11 @@ jobs:
       - name: Apply Terraform Configuration for Shutdown
         run: |
           terraform apply -auto-approve \
-            -var 'ecs_desired_count=0' \
-            -var 'asg_min_size=0' \
-            -var 'asg_max_size=3' \
-            -var 'asg_desired_capacity=0' \
-            -var "frontend_image_uri=${{ env.TF_VAR_frontend_image_uri }}" \
-            -var "backend_image_uri=${{ env.TF_VAR_backend_image_uri }}"
+            -var="deployment_tag=${{ env.DEPLOYMENT_TAG }}" \
+            -var='ecs_desired_count=0' \
+            -var='asg_min_size=0' \
+            -var='asg_max_size=3' \
+            -var='asg_desired_capacity=0' \
+            -var="frontend_image_uri=${{ env.TF_VAR_frontend_image_uri }}" \
+            -var="backend_image_uri=${{ env.TF_VAR_backend_image_uri }}"
         working-directory: ./infrastructure
