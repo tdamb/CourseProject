@@ -34,7 +34,7 @@ app.post("/api/shorten", async (req, res) => {
   const { originalUrl } = req.body;
   const { nanoid } = await import("nanoid");
   const shortId = nanoid(10);
-  const shortUrl = `http://pemploy.com/shorturl/${shortId}`;
+  const shortUrl = `https://pemploy.com/shorturl/${shortId}`;
   const params = {
     TableName: process.env.TABLE_NAME,
     Item: {
