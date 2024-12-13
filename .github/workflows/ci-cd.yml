@@ -141,7 +141,9 @@ jobs:
 
       - name: Apply Terraform Configuration
         run: |
-          terraform apply -auto-approve
+          terraform apply -auto-approve \
+            -var="frontend_image_uri=${{ env.FRONTEND_IMAGE_URI }}" \
+            -var="backend_image_uri=${{ env.BACKEND_IMAGE_URI }}"
         working-directory: ./infrastructure
 
       - name: Post-Deployment Scaling Down

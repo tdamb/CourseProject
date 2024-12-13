@@ -8,18 +8,18 @@ const URLShorten = () => {
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
 
-  // URL validation for https:// or www. with TLD requirement and optional query/hash parameters
+  // URL validation for https:// or www. with TLD requirement and path after TLD
   const isValidUrl = (url) => {
-    // Regex allows https://, www., and enforces a valid TLD with optional query/hash parameters
+    // Updated regex to require a path after the TLD
     const regex =
-      /^(https:\/\/|www\.)[a-zA-Z0-9-._~:/?#[\]@!$&'()*+,;=]+(\.[a-zA-Z]{2,})[a-zA-Z0-9-._~:/?#[\]@!$&'()*+,;=#]*$/;
+      /^(https:\/\/|www\.)[a-zA-Z0-9-._~:/?#[\]@!$&'()*+,;=]+(\.[a-zA-Z]{2,})\/[a-zA-Z0-9-._~:/?#[\]@!$&'()*+,;=#]*$/;
     return regex.test(url);
   };
 
   const handleSubmit = async () => {
     if (!isValidUrl(url)) {
       setSnackbarMessage(
-        "Invalid URL! Please enter a valid URL starting with https:// or www. with a TLD."
+        "Invalid URL! Please enter a valid URL starting with https:// or www. with a TLD, and a path."
       );
       setSnackbarSeverity("error");
       setOpenSnackbar(true);
