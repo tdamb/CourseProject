@@ -8,14 +8,14 @@ const URLShorten = () => {
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
 
-  // URL validation for https:// or www. with TLD requirement and path after TLD
+  // URL validation for https:// or www. with TLD requirement and optional path
   const isValidUrl = (url) => {
-    // Updated regex to require a path after the TLD
     const regex =
-      /^(https:\/\/|www\.)[a-zA-Z0-9-._~:/?#[\]@!$&'()*+,;=]+(\.[a-zA-Z]{2,})\/[a-zA-Z0-9-._~:/?#[\]@!$&'()*+,;=#]*$/;
+      /^(https:\/\/|www\.)[a-zA-Z0-9-._~:/?#[\]@!$&'()*+,;=]+(\.[a-zA-Z]{2,})(\/[a-zA-Z0-9-._~:/?#[\]@!$&'()*+,;=#]*)?$/;
     return regex.test(url);
   };
 
+  // Handle URL shortening on submit
   const handleSubmit = async () => {
     if (!isValidUrl(url)) {
       setSnackbarMessage(
@@ -43,6 +43,13 @@ const URLShorten = () => {
     setOpenSnackbar(true);
   };
 
+  // Handle Enter key press for form submission
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter") {
+      handleSubmit();
+    }
+  };
+
   return (
     <div>
       <TextField
@@ -51,6 +58,7 @@ const URLShorten = () => {
         value={url}
         onChange={(e) => setUrl(e.target.value)}
         fullWidth
+        onKeyDown={handleKeyPress} // Trigger handleSubmit when Enter is pressed
       />
       <Button
         onClick={handleSubmit}
